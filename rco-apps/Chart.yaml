@@ -2,10 +2,10 @@ apiVersion: v2
 name: rco-apps
 description: Umbrella chart to deploy RCO applications
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "1.0.0"
 dependencies:
   - name: app
-    version: 0.1.0
+    version: 0.2.0
     repository: file://../app
     alias: api-rco
