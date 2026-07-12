@@ -9,7 +9,7 @@ api-rco:
     host: api.lrfrance.fr
   configMaps:
    - name: api-rco-config
-     mountPath: /app/config
+     mountPath: /app
      filename: appsettings.Production.yaml
      data:
       Logging:
