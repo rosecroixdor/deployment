@@ -23,5 +23,6 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Deploy with Helm
         run: |
+          helm dependency update ./rco-apps
           helm upgrade --install rco-apps ./rco-apps --namespace "$NAMESPACE" --create-namespace
           kubectl label namespace "$NAMESPACE" gateway-access=true --overwrite
