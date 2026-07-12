@@ -5,23 +5,23 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NAMESPACE: dev
     steps:
       - uses: actions/checkout@v4
       - name: Create kubeconfig
         uses: rosecroixdor/core/set-kubeconfig@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Ensure GHCR pull secret
+        uses: rosecroixdor/core/ensure-ghcr-secret@main
+        with:
+          namespace: ${{ env.NAMESPACE }}
+          secret_name: ghcr-secret
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
       - name: Deploy with Helm
         run: |
-          helm upgrade --install rco-apps ./rco-apps --namespace dev --create-namespace
-          kubectl label namespace dev gateway-access=true --overwrite
-      - name: Verify cluster target and rollout
-        run: |
-          echo "Current context: $(kubectl config current-context)"
-          echo "API server: $(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
-
-          kubectl get ns dev
-          helm ls -n dev
-          kubectl -n dev get deploy api-rco
-          kubectl -n dev rollout status deploy/api-rco --timeout=180s
-          kubectl -n dev get pods -o wide
+          helm upgrade --install rco-apps ./rco-apps --namespace "$NAMESPACE" --create-namespace
+          kubectl label namespace "$NAMESPACE" gateway-access=true --overwrite
