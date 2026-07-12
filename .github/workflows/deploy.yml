@@ -14,3 +14,4 @@ jobs:
       - name: Deploy with Helm
         run: |
           helm upgrade --install rco-apps ./rco-apps --namespace dev --create-namespace
+          kubectl label namespace dev gateway-access=true --overwrite
