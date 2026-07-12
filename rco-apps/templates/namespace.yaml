@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   name: {{ .Release.Namespace }}
   labels:
-    gateway-access: true
+    gateway-access: "true"
