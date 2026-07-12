@@ -3,6 +3,14 @@ imagePullSecret: ghcr-secret
 image:
   name: api-rco
   tag: latest
+  env: []
   http:
     host: test.lrfrance.fr
     redirectToHttps: false
+configMaps: []
+# configMaps:
+#   - name: my-config
+#     mountPath: /app/config
+#     data:
+#       appsettings.yaml: |
+#         key: value
