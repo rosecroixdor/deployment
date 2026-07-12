@@ -67,6 +67,7 @@ spec:
  
 ---
 {{- if .Values.http }}
+{{- if .Values.http.redirectToHttps }}
 #http redirect
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -85,8 +86,8 @@ spec:
       requestRedirect:
         scheme: https
         statusCode: 301
+{{- end }}
 ---
-{{- if .Values.http.redirectToHttps }}
 #httproute
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -107,5 +108,4 @@ spec:
     backendRefs:
     - name: {{ .Values.image.name }}-svc
       port: {{ .Values.http.containerPort }}
-{{- end }}
 {{- end }}
