@@ -13,4 +13,4 @@ jobs:
           kubeconfig: ${{ secrets.KUBECONFIG }}
       - name: Deploy with Helm
         run: |
-          helm upgrade --install rco-apps ./rco-apps --namespace dev
+          helm upgrade --install rco-apps ./rco-apps --namespace dev --create-namespace
