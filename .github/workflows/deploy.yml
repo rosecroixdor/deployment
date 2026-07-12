@@ -15,3 +15,13 @@ jobs:
         run: |
           helm upgrade --install rco-apps ./rco-apps --namespace dev --create-namespace
           kubectl label namespace dev gateway-access=true --overwrite
+      - name: Verify cluster target and rollout
+        run: |
+          echo "Current context: $(kubectl config current-context)"
+          echo "API server: $(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+
+          kubectl get ns dev
+          helm ls -n dev
+          kubectl -n dev get deploy api-rco
+          kubectl -n dev rollout status deploy/api-rco --timeout=180s
+          kubectl -n dev get pods -o wide
