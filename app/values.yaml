@@ -1,0 +1,8 @@
+repository: ghcr.io/rosecroixdor
+imagePullSecret: ghcr-secret
+image:
+  name: api-rco
+  tag: latest
+  http:
+    host: test.lrfrance.fr
+    redirectToHttps: false

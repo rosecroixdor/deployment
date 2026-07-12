@@ -1,0 +1,6 @@
+api-rco:
+  image:
+    name: api-rco
+    tag: latest
+  http:
+    host: api.lrfrance.fr

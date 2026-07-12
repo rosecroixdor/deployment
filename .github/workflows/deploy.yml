@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create kubeconfig
+        uses: rosecroixdor/core/set-kubeconfig@main
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install rco-apps ./rco-apps --namespace dev
