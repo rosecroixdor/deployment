@@ -6,6 +6,8 @@ api-rco:
     env:
       - name: DOTNET_ENVIRONMENT
         value: "Production"
+      - name: ASPNETCORE_URLS
+        value: "http://+:5000"
   http:
     host: api.lrfrance.fr
   configMaps:
