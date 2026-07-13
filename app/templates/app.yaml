@@ -63,7 +63,7 @@ spec:
     app: {{ .Values.image.name }}
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: {{ .Values.http.containerPort }}
  
 ---
 {{- if .Values.http }}
@@ -107,5 +107,5 @@ spec:
         value: /
     backendRefs:
     - name: {{ .Values.image.name }}-svc
-      port: {{ .Values.http.containerPort }}
+      port: 80
 {{- end }}
