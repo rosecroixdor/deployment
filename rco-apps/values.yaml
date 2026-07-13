@@ -2,12 +2,12 @@ api-rco:
   image:
     name: api-rco
     tag: latest
+    containerPort: 5000
     env:
       - name: DOTNET_ENVIRONMENT
         value: "Production"
   http:
     host: api.lrfrance.fr
-    containerPort: 5000
   configMaps:
    - name: api-rco-config
      mountPath: /app
