@@ -7,7 +7,7 @@ api-rco:
         value: "Production"
   http:
     host: api.lrfrance.fr
-    containerPort: 80
+    containerPort: 5000
   configMaps:
    - name: api-rco-config
      mountPath: /app
