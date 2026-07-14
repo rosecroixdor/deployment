@@ -9,6 +9,16 @@ on:
         description: 'Image to commit'
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to commit'
+        required: true
+        type: string
+      image:
+        description: 'Image to commit'
+        required: true
+        type: string
 jobs:
   commit:
     runs-on: ubuntu-latest
