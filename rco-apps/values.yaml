@@ -2,47 +2,17 @@ api-rco:
   image:
     name: api-rco
     tag: latest
-    containerPort: 5000
-    env:
-      - name: DOTNET_ENVIRONMENT
-        value: "Production"
-      - name: ASPNETCORE_URLS
-        value: "http://+:5000"
   http:
-    host: api.lrfrance.fr
+    redirectToHttps: false
+  containerPort: 5000
+  environement: test
   configMaps:
    - name: api-rco-config
      mountPath: /app
-     filename: appsettings.Production.yaml
      data:
-      Logging:
-        LogLevel:
-          Default: Information
-          Microsoft.AspNetCore: Warning
       Cors:
         AllowedOrigins:
           - http://localhost:3000
           - http://localhost:5173
-        AllowedMethods:
-          - "*"
-        AllowedHeaders:
-          - "*"
-        AllowAnyMethod: true
-        AllowAnyHeader: true
-        AllowCredentials: false
-      OAuth2:
-        Authority: "https://auth.lrfrance.fr/application/o/dev/"
-        Audience: "2nkj1Zlek1CcruNCIVjp9MDyjiK3TrEMIzEJqHXR"
-        ClientId: "2nkj1Zlek1CcruNCIVjp9MDyjiK3TrEMIzEJqHXR"
-        ClientSecret: ""
-        AuthorizationEndpoint: "https://auth.lrfrance.fr/application/o/authorize/"
-        TokenEndpoint: "https://auth.lrfrance.fr/application/o/token/"
-        Scopes:
-          - openid
-          - roles
-          - groups
-          - email
-        RequireHttpsMetadata: true
-        RequireAuthenticatedByDefault: false
     
 

@@ -18,16 +18,23 @@ spec:
       containers:
       - name: {{ .Values.image.name }}
         image: {{ .Values.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}
-        {{- if .Values.image.env }}
         env:
-        {{- toYaml .Values.image.env | nindent 8 }}
-        {{- end }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:{{ .Values.image.containerPort | default 80 }}"
+        - name: DOTNET_RUNNING_IN_CONTAINER
+          value: "true"
+        - name: DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
+          value: "true"
+        - name: DOTNET_USE_POLLING_FILE_WATCHER
+          value: "true"
+        - name: DOTNET_ENVIRONMENT
+          value: "{{ .Values.image.environement }}"
         {{- if .Values.configMaps }}
         volumeMounts:
         {{- range .Values.configMaps }}
         - name: {{ .name }}
-          mountPath: {{ .mountPath }}/{{ .filename }}
-          subPath: {{ .filename }}
+          mountPath: {{ .mountPath }}/{{ .filename | default (printf "appsettings.%s.yaml" $.Values.image.environement) }}
+          subPath: {{ .filename | default (printf "appsettings.%s.yaml" $.Values.image.environement) }}
           readOnly: true
         {{- end }}
         {{- end }}
@@ -49,7 +56,7 @@ metadata:
   name: {{ .name }}
   namespace: {{ $.Release.Namespace }}
 data:
-  {{ .filename }}: |
+  {{ .filename | default (printf "appsettings.%s.yaml" $.Values.image.environement) }}: |
     {{- toYaml .data | nindent 4 }}
 ---
 {{- end }}
@@ -67,7 +74,7 @@ spec:
  
 ---
 {{- if .Values.http }}
-{{- if .Values.http.redirectToHttps }}
+{{- if .Values.http.redirectToHttps | default true }}
 #http redirect
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -79,7 +86,7 @@ spec:
   - name: http-gw
     namespace: gateway
   hostnames:
-  - {{ .Values.http.host }}
+  - {{ .Values.http.host | default (printf "%s.%s" .Values.image.environement (index .Values "service-endpoint-domain")) }}
   rules:
   - filters:
     - type: RequestRedirect
@@ -99,7 +106,7 @@ spec:
   - name: https-gw
     namespace: gateway
   hostnames:
-  - {{ .Values.http.host }}
+  - {{ .Values.http.host | default (printf "%s.%s" .Values.image.environement (index .Values "service-endpoint-domain")) }}
   rules:
   - matches:
     - path:
