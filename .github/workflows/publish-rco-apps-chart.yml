@@ -1,0 +1,40 @@
+name: Publish rco-apps Helm chart
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-chart:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Build local chart dependencies
+        run: helm dependency build ./rco-apps
+
+      - name: Package rco-apps chart
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .packages
+          package_path="$(helm package ./rco-apps --destination .packages | awk '{print $NF}')"
+          echo "PACKAGED_CHART=${package_path}" >> "$GITHUB_ENV"
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push chart to GHCR (OCI)
+        run: |
+          helm push "${PACKAGED_CHART}" oci://ghcr.io/${{ github.repository_owner }}/helm
