@@ -32,7 +32,7 @@ jobs:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
-        uses: rosecroixdor/core/deploy-to-k8s@main
+        uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: dev
@@ -50,7 +50,7 @@ jobs:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
-        uses: rosecroixdor/core/deploy-to-k8s@main
+        uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: qa
@@ -68,7 +68,7 @@ jobs:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
-        uses: rosecroixdor/core/deploy-to-k8s@main
+        uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: production
