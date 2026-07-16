@@ -1,2 +1,2 @@
-image: rosecroixdor/api-rco
-version: 0.2.0
+image: api-rco
+version: 0.2.1
