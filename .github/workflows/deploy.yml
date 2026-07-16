@@ -63,8 +63,8 @@ jobs:
         run: |
           #github var CORS to file
           ${{env.CORS}} > ./cors.yaml
-          kubectl label namespace "${{env.NAMESPACE}}" gateway-access=true --overwrite
-          helm upgrade --install ${{env.IMAGE}} \
+          kubectl label namespace "${{env.NAMESPACE}}" gateway-access=true
+          helm upgrade --install rco-apps \
                 oci://ghcr.io/${{ github.repository_owner }}/rco-apps \
                 --namespace ${{env.NAMESPACE}} \
                 -f ./cors.yaml \
