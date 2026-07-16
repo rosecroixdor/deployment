@@ -1,36 +1,35 @@
 name: Deploy RCO Apps
-run-name: Deploy ${{ github.event.inputs.image || github.event.registry_package.name }}:${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
 on:
-  registry_package:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to commit'
-        required: true
-        type: string
-      image:
-        description: 'Image to commit'
-        required: true
-        type: choice
-        options:
-          - api-rco
+  push:
+    paths:
+      - 'version.yaml'
 jobs:
-  verify:
+  prepare:
     runs-on: ubuntu-latest
-    if: ${{ (github.event.inputs.image || github.event.registry_package.name) == 'api-rco' }}
+    outputs:
+      image: ${{ steps.version.outputs.image }}
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Validate deploy inputs
+      - uses: actions/checkout@v4
+      - name: Read version.yaml
+        id: version
+        shell: bash
         run: |
-          test -n "${{ github.event.inputs.image || github.event.registry_package.name }}" || (echo "image is empty" && exit 1)
-          test -n "${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}" || (echo "version is empty" && exit 1)
+          image="$(sed -n 's/^image:[[:space:]]*//p' version.yaml)"
+          version="$(sed -n 's/^version:[[:space:]]*//p' version.yaml)"
+
+          test -n "$image" || (echo "image is empty in version.yaml" && exit 1)
+          test -n "$version" || (echo "version is empty in version.yaml" && exit 1)
+
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
   dev:
-    needs: verify
+    needs: prepare
     runs-on: ubuntu-latest
     environment: dev
     env:
-      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
-      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
+      IMAGE: ${{ needs.prepare.outputs.image }}
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
@@ -43,12 +42,12 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
-    needs: verify
+    needs: prepare
     runs-on: ubuntu-latest
     environment: qa
     env:
-      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
-      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
+      IMAGE: ${{ needs.prepare.outputs.image }}
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
@@ -61,12 +60,12 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
-    needs: verify
+    needs: prepare
     runs-on: ubuntu-latest
     environment: production
     env:
-      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
-      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
+      IMAGE: ${{ needs.prepare.outputs.image }}
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
