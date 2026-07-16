@@ -1,6 +1,0 @@
-service-endpoint-domain: lrfrance.fr
-repository: ghcr.io/rosecroixdor
-imagePullSecret: ghcr-secret
-image:
-  name: imagetoreplace
-  tag: gimmemytag

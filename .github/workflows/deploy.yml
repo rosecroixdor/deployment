@@ -1,12 +1,45 @@
+name: Deploy RCO Apps
+run-name: Deploy  ${{github.event.inputs.image}}:${{github.event.inputs.version}} to ${{github.event.inputs.target_env}}
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to commit'
+        required: true
+        type: string
+      image:
+        description: 'Image to commit'
+        required: true
+        type: string
+      target_env:
+        description: 'Environnement de destination'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to commit'
+        required: true
+        type: string
+      image:
+        description: 'Image to commit'
+        required: true
+        type: string
+      target_env:
+        description: 'Environnement de destination'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: dev
+      NAMESPACE: ${{ github.event.inputs.target_env }}
+      IMAGE: ${{ github.event.inputs.image }}
+      VERSION: ${{ github.event.inputs.version }}
     steps:
       - uses: actions/checkout@v4
       - name: Create kubeconfig
@@ -23,6 +56,13 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Deploy with Helm
         run: |
-          helm dependency update ./rco-apps
-          helm upgrade --install rco-apps ./rco-apps --namespace "$NAMESPACE" --create-namespace
-          kubectl label namespace "$NAMESPACE" gateway-access=true --overwrite
+          #github var CORS to file
+          ${{env.CORS}} > ./cors.yaml
+          kubectl label namespace "${{env.NAMESPACE}}" gateway-access=true --overwrite
+          helm upgrade --install ${{env.IMAGE}} \
+                oci://ghcr.io/${{ github.repository_owner }}/rco-apps \
+                --namespace ${{env.NAMESPACE}} \
+                -f ./cors.yaml \
+                --set image.name=${{env.IMAGE}} \
+                --set image.tag=${{env.VERSION}} \
+                --set Cors.AllowedOrigins[0]=http://localhost:3000 \
