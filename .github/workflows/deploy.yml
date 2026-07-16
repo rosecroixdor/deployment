@@ -1,10 +1,24 @@
 name: Deploy RCO Apps
+run-name: Deploy ${{ github.event.inputs.image || github.event.registry_package.name }}:${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
 on:
   registry_package:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to commit'
+        required: true
+        type: string
+      image:
+        description: 'Image to commit'
+        required: true
+        type: choice
+        options:
+          - api-rco
 jobs:
   verify:
     runs-on: ubuntu-latest
+    if: ${{ (github.event.inputs.image || github.event.registry_package.name) == 'api-rco' }}
     steps:
       - name: Validate deploy inputs
         run: |
