@@ -4,76 +4,39 @@ on:
     paths:
       - 'version.yaml'
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.version.outputs.image }}
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Read version.yaml
-        id: version
-        shell: bash
-        run: |
-          image="$(sed -n 's/^image:[[:space:]]*//p' version.yaml)"
-          version="$(sed -n 's/^version:[[:space:]]*//p' version.yaml)"
-
-          test -n "$image" || (echo "image is empty in version.yaml" && exit 1)
-          test -n "$version" || (echo "version is empty in version.yaml" && exit 1)
-
-          echo "image=$image" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
   dev:
-    needs: prepare
     runs-on: ubuntu-latest
     environment: dev
-    env:
-      IMAGE: ${{ needs.prepare.outputs.image }}
-      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: dev
-          image: ${{ env.IMAGE }}
-          version: ${{ env.VERSION }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
-    needs: prepare
     runs-on: ubuntu-latest
     environment: qa
-    env:
-      IMAGE: ${{ needs.prepare.outputs.image }}
-      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: qa
-          image: ${{ env.IMAGE }}
-          version: ${{ env.VERSION }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
-    needs: prepare
     runs-on: ubuntu-latest
     environment: production
-    env:
-      IMAGE: ${{ needs.prepare.outputs.image }}
-      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: production
-          image: ${{ env.IMAGE }}
-          version: ${{ env.VERSION }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
