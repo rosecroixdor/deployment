@@ -33,8 +33,7 @@ jobs:
           test -n "${{ inputs.version || github.event.inputs.version }}" || (echo "version is empty" && exit 1)
   dev:
     runs-on: ubuntu-latest
-    environment:
-      name: dev
+    environment: dev
     env:
       IMAGE: ${{ inputs.image || github.event.inputs.image }}
       VERSION: ${{ inputs.version || github.event.inputs.version }}
@@ -51,8 +50,7 @@ jobs:
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
     runs-on: ubuntu-latest
-    environment:
-      name: qa
+    environment: qa
     env:
       IMAGE: ${{ inputs.image || github.event.inputs.image }}
       VERSION: ${{ inputs.version || github.event.inputs.version }}
@@ -69,8 +67,7 @@ jobs:
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
     runs-on: ubuntu-latest
-    environment:
-      name: production
+    environment: production
     env:
       IMAGE: ${{ inputs.image || github.event.inputs.image }}
       VERSION: ${{ inputs.version || github.event.inputs.version }}
