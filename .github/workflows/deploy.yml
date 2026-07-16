@@ -1,5 +1,5 @@
 name: Deploy RCO Apps
-run-name: Deploy ${{ inputs.image || github.event.inputs.image }}:${{ inputs.version || github.event.inputs.version }} to ${{ inputs.target_env || github.event.inputs.target_env }}
+run-name: Deploy ${{ inputs.image || github.event.inputs.image }}:${{ inputs.version || github.event.inputs.version }}
 on:
   workflow_call:
     inputs:
@@ -11,10 +11,6 @@ on:
         description: 'Image to commit'
         required: true
         type: string
-      target_env:
-        description: 'Environnement de destination'
-        required: true
-        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -24,50 +20,68 @@ on:
       image:
         description: 'Image to commit'
         required: true
-        type: string
-      target_env:
-        description: 'Environnement de destination'
-        required: true
         type: choice
         options:
-          - dev
-          - staging
-          - production
+          - api-rco
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
+    steps:
+      - name: Validate deploy inputs
+        run: |
+          test -n "${{ inputs.image || github.event.inputs.image }}" || (echo "image is empty" && exit 1)
+          test -n "${{ inputs.version || github.event.inputs.version }}" || (echo "version is empty" && exit 1)
+  dev:
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
     env:
-      NAMESPACE: ${{ inputs.target_env || github.event.inputs.target_env }}
       IMAGE: ${{ inputs.image || github.event.inputs.image }}
       VERSION: ${{ inputs.version || github.event.inputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Validate deploy inputs
-        run: |
-          test -n "${{ env.NAMESPACE }}" || (echo "target_env/namespace is empty" && exit 1)
-          test -n "${{ env.IMAGE }}" || (echo "image is empty" && exit 1)
-          test -n "${{ env.VERSION }}" || (echo "version is empty" && exit 1)
-      - name: Create kubeconfig
-        uses: rosecroixdor/core/set-kubeconfig@main
+      - name: Deploy with Helm
+        uses: rosecroixdor/core/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
-      - name: Ensure GHCR pull secret
-        uses: rosecroixdor/core/ensure-ghcr-secret@main
-        with:
-          namespace: ${{ env.NAMESPACE }}
-          secret_name: ghcr-secret
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          namespace: dev
+          image: ${{ env.IMAGE }}
+          version: ${{ env.VERSION }}
+          cors_yaml: ${{ vars.CORS }}
+          ghcr_username: ${{ secrets.GHCR_USERNAME }}
+          ghcr_password: ${{ secrets.GHCR_TOKEN }}
+  qa:
+    runs-on: ubuntu-latest
+    environment:
+      name: qa
+    env:
+      IMAGE: ${{ inputs.image || github.event.inputs.image }}
+      VERSION: ${{ inputs.version || github.event.inputs.version }}
+    steps:
       - name: Deploy with Helm
-        run: |
-          #github var CORS to file
-          ${{env.CORS}} > ./cors.yaml
-          kubectl label namespace "${{env.NAMESPACE}}" gateway-access=true
-          helm upgrade --install rco-apps \
-                oci://ghcr.io/${{ github.repository_owner }}/rco-apps \
-                --namespace ${{env.NAMESPACE}} \
-                -f ./cors.yaml \
-                --set image.name=${{env.IMAGE}} \
-                --set image.tag=${{env.VERSION}} \
-                --set Cors.AllowedOrigins[0]=http://localhost:3000 \
+        uses: rosecroixdor/core/deploy-to-k8s@main
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          namespace: qa
+          image: ${{ env.IMAGE }}
+          version: ${{ env.VERSION }}
+          cors_yaml: ${{ vars.CORS }}
+          ghcr_username: ${{ secrets.GHCR_USERNAME }}
+          ghcr_password: ${{ secrets.GHCR_TOKEN }}
+  production:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      IMAGE: ${{ inputs.image || github.event.inputs.image }}
+      VERSION: ${{ inputs.version || github.event.inputs.version }}
+    steps:
+      - name: Deploy with Helm
+        uses: rosecroixdor/core/deploy-to-k8s@main
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          namespace: production
+          image: ${{ env.IMAGE }}
+          version: ${{ env.VERSION }}
+          cors_yaml: ${{ vars.CORS }}
+          ghcr_username: ${{ secrets.GHCR_USERNAME }}
+          ghcr_password: ${{ secrets.GHCR_TOKEN }}
