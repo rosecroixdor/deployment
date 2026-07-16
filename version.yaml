@@ -1,3 +1,4 @@
 api-rco:
-  image: api-rco
-  version: 0.1.2
+  image:
+    name: api-rco
+    tag: 0.1.6
