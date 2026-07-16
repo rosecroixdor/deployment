@@ -1,16 +1,8 @@
 name: Deploy RCO Apps
-run-name: Deploy ${{ inputs.image || github.event.inputs.image }}:${{ inputs.version || github.event.inputs.version }}
+run-name: Deploy ${{ github.event.inputs.image || github.event.registry_package.name }}:${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
 on:
-  workflow_call:
-    inputs:
-      version:
-        description: 'Version to commit'
-        required: true
-        type: string
-      image:
-        description: 'Image to commit'
-        required: true
-        type: string
+  registry_package:
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -26,17 +18,19 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    if: ${{ (github.event.inputs.image || github.event.registry_package.name) == 'api-rco' }}
     steps:
       - name: Validate deploy inputs
         run: |
-          test -n "${{ inputs.image || github.event.inputs.image }}" || (echo "image is empty" && exit 1)
-          test -n "${{ inputs.version || github.event.inputs.version }}" || (echo "version is empty" && exit 1)
+          test -n "${{ github.event.inputs.image || github.event.registry_package.name }}" || (echo "image is empty" && exit 1)
+          test -n "${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}" || (echo "version is empty" && exit 1)
   dev:
+    needs: verify
     runs-on: ubuntu-latest
     environment: dev
     env:
-      IMAGE: ${{ inputs.image || github.event.inputs.image }}
-      VERSION: ${{ inputs.version || github.event.inputs.version }}
+      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
+      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
@@ -49,11 +43,12 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
+    needs: verify
     runs-on: ubuntu-latest
     environment: qa
     env:
-      IMAGE: ${{ inputs.image || github.event.inputs.image }}
-      VERSION: ${{ inputs.version || github.event.inputs.version }}
+      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
+      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
@@ -66,11 +61,12 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
+    needs: verify
     runs-on: ubuntu-latest
     environment: production
     env:
-      IMAGE: ${{ inputs.image || github.event.inputs.image }}
-      VERSION: ${{ inputs.version || github.event.inputs.version }}
+      IMAGE: ${{ github.event.inputs.image || github.event.registry_package.name }}
+      VERSION: ${{ github.event.inputs.version || github.event.registry_package.package_version.container_metadata.tag.name || github.event.registry_package.package_version.version }}
     steps:
       - name: Deploy with Helm
         uses: rosecroixdor/core/deploy-to-k8s@main
