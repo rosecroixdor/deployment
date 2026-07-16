@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
@@ -20,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: qa
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
@@ -32,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
