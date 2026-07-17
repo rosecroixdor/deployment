@@ -32,7 +32,7 @@ jobs:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: dev
           version_yaml: ${{ needs.prepare.outputs.version_yaml }}
-          cors_yaml: ${{ vars.CORS }}
+          value_yaml: ${{ vars.VALUEYAML }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
@@ -47,7 +47,7 @@ jobs:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: qa
           version_yaml: ${{ needs.prepare.outputs.version_yaml }}
-          cors_yaml: ${{ vars.CORS }}
+          value_yaml: ${{ vars.VALUEYAML }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
@@ -62,6 +62,6 @@ jobs:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: production
           version_yaml: ${{ needs.prepare.outputs.version_yaml }}
-          cors_yaml: ${{ vars.CORS }}
+          value_yaml: ${{ vars.VALUEYAML }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
