@@ -21,6 +21,7 @@ jobs:
           echo "$version_yaml" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
   dev:
+    needs: prepare
     name: "🏗️ Déploiement en Dev"
     runs-on: ubuntu-latest
     environment: dev
@@ -35,6 +36,7 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
+    needs: prepare
     name: "🧪 Déploiement en QA"
     runs-on: ubuntu-latest
     environment: qa
@@ -49,6 +51,7 @@ jobs:
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
+    needs: prepare
     name: "🚀 Déploiement en Production"
     runs-on: ubuntu-latest
     environment: production
