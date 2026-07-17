@@ -1,4 +1,0 @@
-api-rco:
-  image:
-    name: api-rco
-    tag: 0.1.6
