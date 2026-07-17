@@ -4,42 +4,61 @@ on:
     paths:
       - 'version.yaml'
 jobs:
+  prepare:
+    name: "📝 Préparer le déploiement"
+    runs-on: ubuntu-latest
+    outputs:
+      version_yaml: ${{ steps.prepare.outputs.version_yaml }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare version.yaml
+        id: prepare
+        shell: bash
+        run: |
+          set -euo pipefail
+          version_yaml=$(cat version.yaml)
+          echo "version_yaml<<EOF" >> $GITHUB_OUTPUT
+          echo "$version_yaml" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
   dev:
+    name: "🏗️ Déploiement en Dev"
     runs-on: ubuntu-latest
     environment: dev
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: dev
+          version_yaml: ${{ needs.prepare.outputs.version_yaml }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   qa:
+    name: "🧪 Déploiement en QA"
     runs-on: ubuntu-latest
     environment: qa
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: qa
+          version_yaml: ${{ needs.prepare.outputs.version_yaml }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
   production:
+    name: "🚀 Déploiement en Production"
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy with Helm
         uses: rosecroixdor/actions/deploy-to-k8s@main
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
           namespace: production
+          version_yaml: ${{ needs.prepare.outputs.version_yaml }}
           cors_yaml: ${{ vars.CORS }}
           ghcr_username: ${{ secrets.GHCR_USERNAME }}
           ghcr_password: ${{ secrets.GHCR_TOKEN }}
